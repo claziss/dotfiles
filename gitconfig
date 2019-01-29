@@ -1,0 +1,54 @@
+[sendemail]
+	smtpuser = claziss
+	smtpserver = smtp.gmail.com
+	smtpencryption = tls
+	smtpserverport = 587
+	suppresscc = self
+[push]
+	default = simple
+[use]
+	email = claziss@gmail.com
+[user]
+	email = claziss@gmail.com
+	name = Claudiu Zissulescu
+[color]
+	ui = auto
+[alias]
+	history = log --pretty=format:'%C(cyan)%h%Cred%d %Creset%s%Cgreen [%cn]' --decorate
+        st = status
+        ci = commit
+        br = branch
+        co = checkout
+        cp = cherry-pick
+        sr = svn rebase
+        sci = svn dcommit
+        dir = rev-parse --git-dir
+        # The current branch.
+        cbr = "!f(){ expr $( ( git symbolic-ref -q HEAD || cat $(git dir)/rebase-merge/head-name ) 2>/dev/null ) : 'refs/heads/\\(.*\\)'; }; f"
+        # The branch being tracked by the current branch.
+        track = "!f() { if p=$(git rev-parse --symbolic-full-name '@{u}' 2>/dev/null); then echo origin/${p##*/}; else git svn info|sed -n 's,^URL.*gcc/\\(branches/\\)\\?\\(.*\\),origin/\\2,p'; fi; }; f"
+        # Show all the local commits on this branch.
+        lg = "!git log -p `git track`.."
+        # Write all the local commits to ~/patch, filtering out modifications to ChangeLog files
+        lgp = "!git log -p `git track`.. | filterdiff -x '*/ChangeLog' | sed -e '/^diff.*ChangeLog/{N;d}' > ~/patch"
+        # Show all the local changes on this branch as one big diff.
+        df = "!git diff $(git merge-base $(git track) HEAD)"
+        dfc = diff --cached
+        # Reorganize the local commits on this branch.
+        rb = "!git rebase -i `git track`"
+        rc = rebase --continue
+        # 'git rmerge mybranch' to reintegrate a temporary branch onto the top of the current branch
+        rmerge = "!f(){ cur=`git cbr`; git rebase $cur $1; git rebase $1 $cur; }; f"
+        # Squash everything since the specified commit (or HEAD^) into that commit
+        sq = "!f(){ git reset --soft ${@:-HEAD^} && git commit --amend -C HEAD; }; f"
+        # Pop everything since the specified commit, but leave it in the index
+        rs = "!f(){ git reset --soft ${@:-HEAD^}; }; f"
+        # Choose patch hunks to remove from the index (e.g. after doing git rs); after removing some hunks I then do a commit -C ORIG_HEAD
+        rp = reset -p
+        # Show the commit corresponding to an SVN revision
+        ssh = "!f(){ git show $(git svn find-rev r$1); }; f"
+[merge "merge-changelog"]
+	name = GNU-style ChangeLog merge driver
+	driver = /usr/local/bin/git-merge-changelog %O %A %B
+[core]
+	excludesfile = /home/claziss/.gitignore_global
